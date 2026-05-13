@@ -1,38 +1,47 @@
-const jwt = require("jsonwebtoken");
+/**
+ * JWT Authentication Middleware
+ * 
+ * Verifies JWT access tokens from the Authorization header.
+ * Attaches decoded user info to req.user.
+ * Uses custom error classes for consistent error responses.
+ */
+
+const jwt = require('jsonwebtoken');
+const { config } = require('../config/environment');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // check header
+    // Check header exists
     if (!authHeader) {
-      return res.status(401).json({
-        message: "No token provided",
-      });
+      throw new UnauthorizedError('No token provided');
     }
 
-    // check format Bearer TOKEN
-    if (!authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        message: "Invalid token format",
-      });
+    // Check Bearer format
+    if (!authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedError('Invalid token format — use "Bearer <token>"');
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
 
-    // verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify token
+    const decoded = jwt.verify(token, config.jwt.secret);
 
-    // attach user to request
+    // Attach user to request
     req.user = {
       id: decoded.id,
     };
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      message: "Invalid or expired token",
-    });
+    // JWT-specific errors are handled by error middleware,
+    // but wrap them in UnauthorizedError for consistency
+    if (error instanceof UnauthorizedError) {
+      return next(error);
+    }
+    return next(new UnauthorizedError('Invalid or expired token'));
   }
 };
 

@@ -1,29 +1,60 @@
-const express = require("express");
+/**
+ * Resume Routes
+ * 
+ * POST   /api/resume/upload          — Upload resume for AI analysis (async)
+ * POST   /api/resume/job-match       — Resume vs job description match (async)
+ * GET    /api/resume/status/:jobId   — Poll job processing status
+ * GET    /api/resume/result/:id      — Get completed analysis result
+ * GET    /api/resume/history         — Paginated analysis history
+ * DELETE /api/resume/:id             — Delete analysis
+ * 
+ * All routes are protected (require JWT authentication).
+ * Upload routes have stricter rate limiting to protect AI API costs.
+ */
 
+const express = require('express');
 const router = express.Router();
 
-const upload = require("../middleware/uploadMiddleware");
-
-const authMiddleware = require("../middleware/authMiddleware");
 const {
   uploadResume,
   jobMatch,
+  getStatus,
+  getResult,
   getHistory,
-  getSingleAnalysis,
   deleteAnalysis,
-} = require("../controllers/resumeController");
+} = require('../controllers/resumeController');
 
-// Upload Resume + AI Analysis
-router.post("/upload", authMiddleware, upload.single("resume"), uploadResume);
+const authMiddleware = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+const { uploadLimiter } = require('../middleware/rateLimitMiddleware');
+const { validate } = require('../middleware/validateRequest');
+const { historyQuerySchema } = require('../validation/resumeValidation');
 
-// Resume vs Job Description Match
-router.post("/job-match", authMiddleware, upload.single("resume"), jobMatch);
+// ─── Upload Routes (Rate Limited) ─────────────────────────────
+router.post(
+  '/upload',
+  authMiddleware,
+  uploadLimiter,
+  upload.single('resume'),
+  uploadResume
+);
 
-// User Analysis History
-router.get("/history", authMiddleware, getHistory);
+router.post(
+  '/job-match',
+  authMiddleware,
+  uploadLimiter,
+  upload.single('resume'),
+  jobMatch
+);
 
-router.get("/:id", authMiddleware, getSingleAnalysis);
+// ─── Status & Result Routes ───────────────────────────────────
+router.get('/status/:jobId', authMiddleware, getStatus);
+router.get('/result/:id', authMiddleware, getResult);
 
-router.delete("/:id", authMiddleware, deleteAnalysis);
+// ─── History Route (Paginated) ────────────────────────────────
+router.get('/history', authMiddleware, validate(historyQuerySchema, 'query'), getHistory);
+
+// ─── Delete Route ─────────────────────────────────────────────
+router.delete('/:id', authMiddleware, deleteAnalysis);
 
 module.exports = router;

@@ -1,90 +1,98 @@
-const User = require("../models/User");
+/**
+ * Auth Controller (Thin Layer)
+ * 
+ * Only handles HTTP request/response.
+ * All business logic is delegated to authService.
+ * All errors are forwarded to the centralized error middleware via next().
+ */
 
-const bcrypt = require("bcrypt");
+const authService = require('../services/authService');
 
-const jwt = require("jsonwebtoken");
-
-// SIGNUP
-exports.signup = async (req, res) => {
+/**
+ * POST /api/auth/signup
+ * Register a new user account.
+ */
+exports.signup = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const result = await authService.signup(req.body);
 
-    // check if user already exists
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: "Email already registered",
-      });
-    }
-
-    // hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    res.json({
-      message: "User created successfully",
-      userId: user._id,
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-// LOGIN
-exports.login = async (req, res) => {
+/**
+ * POST /api/auth/login
+ * Authenticate user and return token pair.
+ */
+exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-
-    // find user
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(400).json({
-        message: "User not found",
-      });
-    }
-
-    // compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid password",
-      });
-    }
-
-    // generate token
-    const token = jwt.sign(
-      {
-        id: user._id,
-      },
-
-      process.env.JWT_SECRET,
-
-      {
-        expiresIn: "7d",
-      },
-    );
+    const result = await authService.login(req.body);
 
     res.json({
-      message: "Login successful",
-
-      token,
-
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      success: true,
+      message: 'Login successful',
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/refresh
+ * Exchange a valid refresh token for a new token pair.
+ */
+exports.refresh = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    const tokens = await authService.refreshToken(refreshToken);
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: tokens,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/logout
+ * Invalidate refresh token (requires authentication).
+ */
+exports.logout = async (req, res, next) => {
+  try {
+    await authService.logout(req.user.id);
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/auth/profile
+ * Get authenticated user's profile.
+ */
+exports.getProfile = async (req, res, next) => {
+  try {
+    const profile = await authService.getProfile(req.user.id);
+
+    res.json({
+      success: true,
+      data: profile,
+    });
+  } catch (error) {
+    next(error);
   }
 };

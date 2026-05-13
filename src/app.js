@@ -1,44 +1,85 @@
-const express = require("express");
-const cors = require("cors");
+/**
+ * Express Application Setup
+ * 
+ * Configures middleware, routes, and error handling.
+ * This file ONLY sets up the Express app — no server listening here.
+ */
+
+const express = require('express');
+const cors = require('cors');
+const { config } = require('./config/environment');
 
 const app = express();
 
-// routes
-const authRoutes = require("./routes/authRoutes");
-const resumeRoutes = require("./routes/resumeRoutes");
+// ─── Middleware Imports ───────────────────────────────────────
+const { apiLimiter } = require('./middleware/rateLimitMiddleware');
+const errorMiddleware = require('./middleware/errorMiddleware');
+const requestLogger = require('./middleware/requestLogger');
 
-// middleware
-const errorMiddleware = require("./middleware/errorMiddleware");
-const rateLimiter = require("./middleware/rateLimitMiddleware");
+// ─── Route Imports ────────────────────────────────────────────
+const authRoutes = require('./routes/authRoutes');
+const resumeRoutes = require('./routes/resumeRoutes');
+
+// ─── Global Middleware ────────────────────────────────────────
+
+// Trust proxy (required for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
 
 // CORS
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: config.corsOrigins,
     credentials: true,
-  }),
+  })
 );
 
-// body parser
-app.use(express.json());
+// Body parsing
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// rate limiter for all API routes
-app.set("trust proxy", 1);
-app.use("/api", rateLimiter);
+// Request logging (before routes, after body parsing)
+app.use(requestLogger);
 
-// routes
-app.use("/api/auth", authRoutes);
+// General rate limiter for all API routes
+app.use('/api', apiLimiter);
 
-app.use("/api/resume", resumeRoutes);
+// ─── Routes ───────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
+app.use('/api/resume', resumeRoutes);
 
-// health check
-app.get("/", (req, res) => {
+// Health check endpoint
+app.get('/', (req, res) => {
   res.json({
-    message: "Resume Analyzer API running",
+    success: true,
+    message: 'Resume Analyzer API running',
+    version: '2.0.0',
+    timestamp: new Date().toISOString(),
   });
 });
 
-// error middleware (always last)
+// Health check with dependencies status
+app.get('/health', (req, res) => {
+  const mongoose = require('mongoose');
+  res.json({
+    success: true,
+    uptime: process.uptime(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ─── 404 Handler ──────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+    },
+  });
+});
+
+// ─── Error Handler (always last) ──────────────────────────────
 app.use(errorMiddleware);
 
 module.exports = app;

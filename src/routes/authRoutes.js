@@ -1,23 +1,29 @@
-const express = require("express");
+/**
+ * Authentication Routes
+ * 
+ * POST /api/auth/signup   — Register new user
+ * POST /api/auth/login    — Authenticate & get tokens
+ * POST /api/auth/refresh  — Refresh access token
+ * POST /api/auth/logout   — Invalidate refresh token (protected)
+ * GET  /api/auth/profile  — Get user profile (protected)
+ */
 
+const express = require('express');
 const router = express.Router();
 
-const { signup, login } = require("../controllers/authController");
+const { signup, login, refresh, logout, getProfile } = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware');
+const { authLimiter } = require('../middleware/rateLimitMiddleware');
+const { validate } = require('../middleware/validateRequest');
+const { signupSchema, loginSchema, refreshSchema } = require('../validation/authValidation');
 
-const authMiddleware = require("../middleware/authMiddleware");
+// ─── Public Routes ────────────────────────────────────────────
+router.post('/signup', authLimiter, validate(signupSchema), signup);
+router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/refresh', validate(refreshSchema), refresh);
 
-// Signup
-router.post("/signup", signup);
-
-// Login
-router.post("/login", login);
-
-// Profile (Protected Route)
-router.get("/profile", authMiddleware, (req, res) => {
-  res.json({
-    message: "Protected profile data",
-    user: req.user,
-  });
-});
+// ─── Protected Routes ─────────────────────────────────────────
+router.post('/logout', authMiddleware, logout);
+router.get('/profile', authMiddleware, getProfile);
 
 module.exports = router;

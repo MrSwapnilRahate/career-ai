@@ -2,3 +2,14 @@
 node_modules/
 logs/
 uploads/
+
+# Redis
+dump.rdb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,191 +1,153 @@
-const fs = require("fs");
-const pdf = require("pdf-parse");
-const axios = require("axios");
+/**
+ * Resume Controller (Thin Layer)
+ * 
+ * Only handles HTTP request/response.
+ * All business logic is delegated to resumeService.
+ * 
+ * Key change: Upload endpoints now return immediately with a jobId (202 Accepted).
+ * Clients poll GET /status/:jobId until processing completes.
+ */
 
-const {
-  analyzeResume,
-  extractSkills,
-  scoreResume,
-  matchJob,
-} = require("../services/aiService");
+const resumeService = require('../services/resumeService');
+const ValidationError = require('../errors/ValidationError');
 
-const Analysis = require("../models/Analysis");
-
-const jobMatchSchema = require("../validation/resumeValidation");
-
-const logger = require("../utils/logger");
-
-exports.uploadResume = async (req, res) => {
+/**
+ * POST /api/resume/upload
+ * Upload a resume for AI analysis (async processing).
+ * Returns jobId immediately — client polls for result.
+ */
+exports.uploadResume = async (req, res, next) => {
   try {
-    const fileUrl = req.file.path;
-
-    const response = await axios.get(fileUrl, {
-      responseType: "arraybuffer",
-    });
-
-    const data = await pdf(response.data);
-
-    const text = data.text;
-
-    const analysis = await analyzeResume(text);
-
-    const skills = await extractSkills(text);
-
-    const score = await scoreResume(text);
-
-    const newAnalysis = new Analysis({
-      userId: req.user.id,
-
-      resumeName: req.file.originalname,
-
-      resumeText: text,
-
-      matchScore: score.score || 0,
-
-      missingSkills: skills.skills || [],
-
-      aiResult: analysis,
-
-      createdAt: new Date(),
-    });
-
-    await newAnalysis.save();
-
-    res.json({
-      message: "Resume analyzed successfully",
-      analysis,
-      skills,
-      score,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-exports.getSingleAnalysis = async (req, res) => {
-  try {
-    const analysis = await Analysis.findById(req.params.id);
-
-    if (!analysis) {
-      return res.status(404).json({
-        message: "Analysis not found",
-      });
-    }
-
-    res.json(analysis);
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-exports.deleteAnalysis = async (req, res) => {
-  try {
-    const analysis = await Analysis.findById(req.params.id);
-
-    if (!analysis) {
-      return res.status(404).json({
-        message: "Analysis not found",
-      });
-    }
-
-    // ensure user owns this analysis
-    if (analysis.userId.toString() !== req.user.id) {
-      return res.status(403).json({
-        message: "Not authorized to delete this analysis",
-      });
-    }
-
-    await Analysis.findByIdAndDelete(req.params.id);
-
-    res.json({
-      message: "Analysis deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-exports.jobMatch = async (req, res) => {
-  try {
-
-    console.log("===== JOB MATCH API HIT =====");
-
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Resume file is required",
-      });
+      throw new ValidationError('Resume file is required');
     }
 
-    const jobDescription = req.body.jobDescription;
+    const { jobId, analysisId } = await resumeService.submitForAnalysis(
+      req.user.id,
+      req.file
+    );
 
-    console.log("FILE URL:", req.file.path);
-
-    // download PDF from cloudinary
-    const response = await axios.get(req.file.path, {
-      responseType: "arraybuffer",
+    res.status(202).json({
+      success: true,
+      message: 'Resume uploaded successfully. Analysis is being processed.',
+      data: {
+        jobId,
+        analysisId,
+        statusUrl: `/api/resume/status/${jobId}`,
+      },
     });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    console.log("PDF DOWNLOADED");
+/**
+ * POST /api/resume/job-match
+ * Upload a resume + job description for AI matching (async processing).
+ * Returns jobId immediately — client polls for result.
+ */
+exports.jobMatch = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new ValidationError('Resume file is required');
+    }
 
-    // parse pdf
-    const data = await pdf(response.data);
+    const { jobDescription } = req.body;
 
-    console.log("PDF PARSED");
+    if (!jobDescription || jobDescription.length < 20) {
+      throw new ValidationError('Job description must be at least 20 characters');
+    }
 
-    const resumeText = data.text;
+    const { jobId, analysisId } = await resumeService.submitForAnalysis(
+      req.user.id,
+      req.file,
+      jobDescription
+    );
 
-    console.log("RESUME LENGTH:", resumeText.length);
-
-    const aiResult = await matchJob(resumeText, jobDescription);
-
-    console.log("AI RESULT:", aiResult);
-
-    const newAnalysis = new Analysis({
-      userId: req.user.id,
-      resumeName: req.file.originalname,
-      resumeText,
-      jobDescription,
-      matchScore: aiResult?.matchScore || 0,
-      missingSkills: aiResult?.missingSkills || [],
-      aiResult,
+    res.status(202).json({
+      success: true,
+      message: 'Job match analysis submitted. Processing in background.',
+      data: {
+        jobId,
+        analysisId,
+        statusUrl: `/api/resume/status/${jobId}`,
+      },
     });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    await newAnalysis.save();
+/**
+ * GET /api/resume/status/:jobId
+ * Poll the processing status of a resume analysis job.
+ * Returns current status: queued | processing | extracting | analyzing | completed | failed
+ */
+exports.getStatus = async (req, res, next) => {
+  try {
+    const status = await resumeService.getJobStatus(req.params.jobId);
 
     res.json({
       success: true,
-      message: "Job match analysis complete",
-      result: aiResult,
+      data: status,
     });
-
   } catch (error) {
-
-    console.error("JOB MATCH ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
+    next(error);
   }
 };
-exports.getHistory = async (req, res) => {
+
+/**
+ * GET /api/resume/result/:id
+ * Get the full analysis result for a completed job.
+ * Requires ownership (user can only see their own analyses).
+ */
+exports.getResult = async (req, res, next) => {
   try {
-    const history = await Analysis.find({ userId: req.user.id }).sort({
-      createdAt: -1,
+    const analysis = await resumeService.getResult(req.params.id, req.user.id);
+
+    res.json({
+      success: true,
+      data: analysis,
     });
-
-    res.json(history);
   } catch (error) {
-    console.log(error);
+    next(error);
+  }
+};
 
-    res.status(500).json({ error: error.message });
+/**
+ * GET /api/resume/history?page=1&limit=10
+ * Get paginated analysis history for the authenticated user.
+ */
+exports.getHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await resumeService.getHistory(req.user.id, { page, limit });
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * DELETE /api/resume/:id
+ * Delete an analysis (with ownership check).
+ */
+exports.deleteAnalysis = async (req, res, next) => {
+  try {
+    await resumeService.deleteAnalysis(req.params.id, req.user.id);
+
+    res.json({
+      success: true,
+      message: 'Analysis deleted successfully',
+    });
+  } catch (error) {
+    next(error);
   }
 };

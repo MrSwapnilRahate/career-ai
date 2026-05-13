@@ -14,11 +14,12 @@
     Folder Structure
 
     src
-        mkdir 
-        conrollers 
-        middleware 
-        models 
-        services 
+        mkdir
+        conrollers
+        routes
+        middleware
+        models
+        services
         utils
         app.js
     server.js
@@ -84,7 +85,7 @@ AI dega - matchingscore, missing skills, suggestions
 // ================ Day 9 - Real SaaS feel - Analyis history API ==================
 /*
 MongoDB me resume analysis save krna
-modals -> Analysis schema 
+modals -> Analysis schema
 */
 
 // ======== Complete Flow ================
@@ -109,7 +110,7 @@ modals -> Analysis schema
     2] Resume Upload + Analysis
         POST - /api/resume/job-match
         Headers - Authorization: Bearer TOKEN
-        BODY(form-data) - resume(file) 
+        BODY(form-data) - resume(file)
                           jobDescription(text)
         Flow - User upload resume -> Multer upload file -> PDF parse(extract text) -> Send text to AI -> AI generate analysis -> Save result in MongoDB -> Return result
         Response - {
@@ -133,7 +134,7 @@ modals -> Analysis schema
            Fields - name
                     email
                     password
-        
+
         2) Analysis - Analysis
            Fields - userId
                     resumeName
@@ -181,12 +182,12 @@ error middleware bnayenge
 
 // ================ Day 11 - Input Validation Library (Joi) =========
 /*
-ye library request ane se philehi data check krleti hai 
+ye library request ane se philehi data check krleti hai
 */
 /*
 npm install jio
 
-src 
+src
     validation
         resumeValidation.js
 
@@ -196,33 +197,33 @@ Flow - Request -> Validation -> Controller -> AI Analysis -> MongoDB Save -> Res
 // ================ Day 12 - Rate Lomiting(Security)(express-rate-limit) ==========
 /**
  * IMP Bcoz project me AI API call ho rhi hai, agar koi user spam kre to mera paise jyda khrch hoga
- * 
+ *
  * nom install express-rate-limit
- * 
+ *
  * src
  *  middleware
  *      rateLimitMiddleware.js
- * 
+ *
  * Flow - Request -> Rate Limit Check -> Auth Middleware -> Controller -> AI Service
  */
 
 // ================ Day 13 - Logging System(winston) =========================
 /**
  * konsi API call hue, kha error aaya, kitna time lga
- * 
+ *
  * npm install winston
- * 
+ *
  * Flow - Request -> Rate Limit -> Validation -. Auth Middleware -> Controller -> Logging -> AI Service -> MongoDB
  */
 
 //============ Complete Fetures =========
 /**
  * Auth System
- * Resume upload 
+ * Resume upload
  * AI analysis
  * MongoDB save
  * History API
- * Error handling 
+ * Error handling
  * Validation
  * Rate limiting
  * Logging
@@ -248,25 +249,25 @@ Flow - Request -> Validation -> Controller -> AI Analysis -> MongoDB Save -> Res
  *      Runtime - Node
  *      Build Command - npm install
  *      Start Command - node server.js
- * 
+ *
  * Environment Variables
  *   Add Environment Variables
  *      MONGO_URI=
  *      JWT_SECRET=
  *      OPENAI_API_KEY=
- * 
+ *
  * Create Web Service
- * 
+ *
  * Render automatically - clone repo, install dependencies, start server
- * 
+ *
  * URL milega - https://ai-resume-anlyzer-backend.onrender.com
- * 
+ *
  */
 
 // ============ Day 16 - CORS ======================
 /**
  * npm install cors
- * 
+ *
  * app.js
  *      import cors from "cors";
  *      const app = express();
