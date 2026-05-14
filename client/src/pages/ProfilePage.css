@@ -1,0 +1,16 @@
+.profile-page { padding: calc(var(--navbar-height) + var(--space-2xl)) 0 var(--space-3xl); max-width: 600px; margin: 0 auto; }
+.profile-page h1 { font-family: var(--font-display); font-size: 28px; font-weight: 800; margin-bottom: var(--space-xl); }
+
+.profile-card { padding: var(--space-2xl); display: flex; align-items: center; gap: var(--space-xl); }
+.profile-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 32px; font-weight: 800;
+  flex-shrink: 0;
+}
+.profile-info h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.profile-email { color: var(--text-secondary); font-size: 15px; }
+.profile-joined { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+.profile-actions { margin-top: var(--space-xl); }
