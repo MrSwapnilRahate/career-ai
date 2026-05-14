@@ -140,4 +140,37 @@ export const resumeAPI = {
   deleteAnalysis: (id) => request(`/resume/${id}`, { method: 'DELETE' }),
 };
 
+// ─── Subscription API ──────────────────────────────────────
+
+export const subscriptionAPI = {
+  getStatus: () => request('/subscription/status'),
+
+  createCheckout: (plan) =>
+    request('/subscription/checkout', { method: 'POST', body: { plan } }),
+
+  createPortal: () =>
+    request('/subscription/portal', { method: 'POST' }),
+};
+
+// ─── LinkedIn API ──────────────────────────────────────────
+
+export const linkedinAPI = {
+  analyzeProfile: (profileText) =>
+    request('/linkedin/analyze', { method: 'POST', body: { profileText } }),
+
+  generateResume: (profileText, targetRole) =>
+    request('/linkedin/generate-resume', { method: 'POST', body: { profileText, targetRole } }),
+};
+
+// ─── Image API ─────────────────────────────────────────────
+
+export const imageAPI = {
+  generateHeadshot: (options) =>
+    request('/images/headshot', { method: 'POST', body: options }),
+
+  generateCoverPhoto: (options) =>
+    request('/images/cover', { method: 'POST', body: options }),
+};
+
 export default request;
+

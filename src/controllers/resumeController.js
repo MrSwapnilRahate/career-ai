@@ -10,6 +10,7 @@
 
 const resumeService = require('../services/resumeService');
 const ValidationError = require('../errors/ValidationError');
+const { incrementUsage } = require('../middleware/subscriptionMiddleware');
 
 /**
  * POST /api/resume/upload

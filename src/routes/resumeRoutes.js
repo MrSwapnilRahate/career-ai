@@ -29,12 +29,14 @@ const upload = require('../middleware/uploadMiddleware');
 const { uploadLimiter } = require('../middleware/rateLimitMiddleware');
 const { validate } = require('../middleware/validateRequest');
 const { historyQuerySchema } = require('../validation/resumeValidation');
+const { checkUsage } = require('../middleware/subscriptionMiddleware');
 
-// ─── Upload Routes (Rate Limited) ─────────────────────────────
+// ─── Upload Routes (Rate + Usage Limited) ─────────────────────
 router.post(
   '/upload',
   authMiddleware,
   uploadLimiter,
+  checkUsage('analyses'),
   upload.single('resume'),
   uploadResume
 );
@@ -43,6 +45,7 @@ router.post(
   '/job-match',
   authMiddleware,
   uploadLimiter,
+  checkUsage('jobMatches'),
   upload.single('resume'),
   jobMatch
 );

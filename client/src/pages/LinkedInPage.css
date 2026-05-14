@@ -1,0 +1,95 @@
+.linkedin-page { max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem; }
+
+.linkedin-header { text-align: center; margin-bottom: 2rem; }
+.linkedin-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.3); color: var(--accent-primary); font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; margin-bottom: 1rem; }
+.linkedin-header h1 { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; }
+.linkedin-header p { color: var(--text-secondary); font-size: 1.05rem; }
+
+/* Tabs */
+.linkedin-tabs { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; }
+.tab { padding: 0.75rem 1.5rem; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-secondary); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.tab.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border-color: transparent; }
+.tab:hover:not(.active) { border-color: var(--accent-primary); color: var(--text-primary); }
+
+/* Content */
+.linkedin-content { display: flex; flex-direction: column; gap: 2rem; }
+.input-section .glass-card { padding: 2rem; }
+.input-section h3 { color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.2rem; }
+.input-hint { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.5; }
+
+.input-section textarea {
+  width: 100%; resize: vertical; padding: 1rem; border-radius: 10px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 0.9rem;
+  line-height: 1.6; transition: border-color 0.3s;
+}
+.input-section textarea:focus { outline: none; border-color: var(--accent-primary); }
+.input-section textarea::placeholder { color: var(--text-muted); }
+
+.char-count { text-align: right; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
+
+.target-role-field { margin-top: 1rem; }
+.target-role-field label { display: block; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.target-role-field input {
+  width: 100%; padding: 0.75rem 1rem; border-radius: 8px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-size: 0.95rem;
+}
+.target-role-field input:focus { outline: none; border-color: var(--accent-primary); }
+
+.linkedin-error { color: #ef4444; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; }
+
+.btn-analyze {
+  width: 100%; margin-top: 1.5rem; padding: 1rem; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s;
+}
+.btn-analyze:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(139,92,246,0.4); }
+.btn-analyze:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.loading-text { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+/* Results */
+.analysis-result, .resume-result { padding: 2rem; }
+.result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.result-header h3 { font-size: 1.3rem; color: var(--text-primary); }
+
+.score-circle { text-align: center; background: rgba(139,92,246,0.1); border: 2px solid var(--accent-primary); border-radius: 50%; width: 80px; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.score-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+.result-summary { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+/* Score bars */
+.score-bars { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+.score-bar-header { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.88rem; color: var(--text-secondary); }
+.score-number.green { color: #22c55e; } .score-number.amber { color: #f59e0b; } .score-number.red { color: #ef4444; }
+.score-bar-track { height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+.score-bar-fill.green { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.score-bar-fill.amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.score-bar-fill.red { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+/* Section blocks */
+.result-section-block { margin-bottom: 1.5rem; }
+.result-section-block h4 { color: var(--text-primary); font-size: 1rem; margin-bottom: 0.75rem; }
+.result-section-block ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.result-section-block li { color: var(--text-secondary); font-size: 0.9rem; padding-left: 1.25rem; position: relative; line-height: 1.5; }
+.result-section-block li::before { content: '→'; position: absolute; left: 0; color: var(--accent-primary); }
+
+.keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.keyword-tag { padding: 0.3rem 0.75rem; border-radius: 20px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--accent-primary); font-size: 0.8rem; font-weight: 500; }
+
+/* Resume preview */
+.resume-actions { margin-bottom: 1rem; }
+.btn-copy { padding: 0.6rem 1.25rem; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-primary); font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.btn-copy:hover { border-color: var(--accent-primary); }
+.resume-preview { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1.5rem; overflow-x: auto; }
+.resume-preview pre { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; font-family: 'Inter', sans-serif; }
+
+@media (max-width: 768px) {
+  .linkedin-header h1 { font-size: 1.8rem; }
+  .linkedin-tabs { flex-direction: column; }
+  .result-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+}

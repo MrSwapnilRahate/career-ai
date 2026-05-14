@@ -4,12 +4,12 @@ import aiIllustration from '../assets/ai-illustration.png';
 import './LandingPage.css';
 
 const features = [
-  { icon: '🧠', title: 'AI-Powered Analysis', desc: 'Advanced GPT analysis scores your resume against industry standards and ATS systems.' },
-  { icon: '🎯', title: 'Job Match Scoring', desc: 'Compare your resume against any job description to see your exact match percentage.' },
-  { icon: '⚡', title: 'Instant Feedback', desc: 'Get actionable strengths, weaknesses, and improvement suggestions in seconds.' },
-  { icon: '📊', title: 'ATS Compatibility', desc: 'Ensure your resume passes Applicant Tracking Systems used by 95% of companies.' },
-  { icon: '🔍', title: 'Skill Detection', desc: 'Automatically extract and categorize all technical and soft skills from your resume.' },
-  { icon: '📈', title: 'Track Progress', desc: 'Keep history of all analyses and track your resume improvement over time.' },
+  { icon: '🧠', title: 'AI-Powered Analysis', desc: 'Gemini 2.5 Pro evaluates your resume against 15+ ATS criteria with section-level scores.' },
+  { icon: '🎯', title: 'Job Match Scoring', desc: 'Compare your resume against any job description to see your exact match percentage and gaps.' },
+  { icon: '🔗', title: 'LinkedIn Optimizer', desc: 'Paste your LinkedIn profile for AI-driven improvement tips and keyword optimization.' },
+  { icon: '📄', title: 'AI Resume Generator', desc: 'Generate ATS-optimized resumes from your LinkedIn profile in one click.' },
+  { icon: '📸', title: 'Professional Photos', desc: 'Generate stunning AI headshots and cover photos for your LinkedIn profile.' },
+  { icon: '📈', title: 'Track Progress', desc: 'Keep history of all analyses and track your career improvement over time.' },
 ];
 
 const steps = [
@@ -37,13 +37,13 @@ export default function LandingPage() {
               <span>✨</span> AI-Powered Resume Intelligence
             </div>
             <h1 className="hero-title">
-              Land Your Dream Job with{' '}
+              Accelerate Your Career with{' '}
               <span className="text-gradient">AI-Powered</span>{' '}
-              Resume Analysis
+              Career Intelligence
             </h1>
             <p className="hero-subtitle">
-              Upload your resume and get instant AI scoring, skill detection, ATS compatibility checks, 
-              and personalized improvement suggestions — all in under 30 seconds.
+              Upload your resume for AI scoring, optimize your LinkedIn profile, generate ATS-friendly resumes, 
+              and create professional photos — all powered by Gemini 2.5 Pro.
             </p>
             <div className="hero-actions">
               <Link to="/signup" className="btn btn-primary btn-lg">
@@ -79,7 +79,7 @@ export default function LandingPage() {
           <div className="section-header">
             <span className="section-tag">Features</span>
             <h2 className="section-title">Everything You Need to <span className="text-gradient">Perfect Your Resume</span></h2>
-            <p className="section-desc">Powered by GPT-4o, our platform provides the most comprehensive resume analysis available.</p>
+            <p className="section-desc">Powered by Google Gemini 2.5 Pro, our platform provides the most comprehensive career intelligence available.</p>
           </div>
           <div className="features-grid">
             {features.map((f) => (
@@ -130,15 +130,16 @@ export default function LandingPage() {
       <footer className="footer">
         <div className="container footer-inner">
           <div className="footer-brand">
-            <span className="brand-text">Resume<span className="text-gradient">AI</span></span>
-            <p>AI-powered resume analysis for modern professionals.</p>
+            <span className="brand-text">Career<span className="text-gradient">AI</span></span>
+            <p>AI-powered career intelligence for modern professionals.</p>
           </div>
           <div className="footer-links">
+            <Link to="/pricing">Pricing</Link>
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
             <a href="#">Contact</a>
           </div>
-          <p className="footer-copy">© 2026 ResumeAI. All rights reserved.</p>
+          <p className="footer-copy">© 2026 CareerAI. All rights reserved.</p>
         </div>
       </footer>
     </div>

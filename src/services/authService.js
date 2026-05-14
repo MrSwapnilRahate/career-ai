@@ -53,6 +53,7 @@ const authService = {
         id: user._id,
         name: user.name,
         email: user.email,
+        subscription: user.subscription || { plan: 'free', status: 'none' },
       },
       ...tokens,
     };
@@ -86,6 +87,7 @@ const authService = {
         id: user._id,
         name: user.name,
         email: user.email,
+        subscription: user.subscription || { plan: 'free', status: 'none' },
       },
       ...tokens,
     };
@@ -158,6 +160,7 @@ const authService = {
       name: user.name,
       email: user.email,
       createdAt: user.createdAt,
+      subscription: user.subscription || { plan: 'free', status: 'none' },
     };
   },
 

@@ -143,6 +143,16 @@
   color: var(--accent-red-light);
 }
 
+.plan-badge-nav {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
 @media (max-width: 768px) {
   .navbar-links {
     gap: 2px;

@@ -1,266 +1,243 @@
 /**
- * AI Service — OpenAI Integration
+ * AI Service — Google Gemini Integration
  * 
- * Major improvements over original:
- * 1. Single comprehensive AI call instead of 3 separate calls (3× cost savings)
- * 2. Structured prompt engineering with explicit JSON schema
- * 3. Retry logic with exponential backoff on transient failures
- * 4. Configurable timeout handling
- * 5. Response validation — verifies AI returns expected structure
- * 6. Separate prompts for resume analysis vs job matching
+ * Uses Gemini 2.5 Pro for deep analysis and resume generation,
+ * Gemini 2.5 Flash for quick analysis and LinkedIn tips.
+ * 
+ * Features:
+ * 1. 15+ ATS criteria evaluation with section-level scores
+ * 2. Industry-specific benchmarking
+ * 3. Job match analysis with gap identification
+ * 4. LinkedIn profile analysis and improvement tips
+ * 5. ATS-friendly resume generation from LinkedIn data
+ * 6. Retry logic with exponential backoff
+ * 7. Structured JSON output via responseMimeType
  */
 
-const OpenAI = require('openai');
+const { GoogleGenAI } = require('@google/genai');
 const { config } = require('../config/environment');
 const logger = require('../utils/logger');
 
-// Lazy-initialized — created on first use to avoid crash when API key is missing at import time
-let _openai;
-function getOpenAI() {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: config.ai.apiKey,
-      timeout: config.ai.timeoutMs,
-    });
+// Lazy-initialized Gemini client
+let _genai;
+function getGenAI() {
+  if (!_genai) {
+    if (!config.ai.apiKey) {
+      throw new Error('GEMINI_API_KEY is not configured. Set it in your .env file.');
+    }
+    _genai = new GoogleGenAI({ apiKey: config.ai.apiKey });
   }
-  return _openai;
+  return _genai;
 }
-
-// ─── Response Schema (for validation) ─────────────────────────
-const REQUIRED_ANALYSIS_FIELDS = ['score', 'atsScore', 'skills', 'strengths', 'weaknesses', 'suggestions', 'summary'];
-const REQUIRED_JOB_MATCH_FIELDS = ['matchScore', 'missingSkills', 'suggestions', 'strengths', 'weaknesses', 'summary'];
 
 // ─── System Prompts ───────────────────────────────────────────
 
-const RESUME_ANALYSIS_SYSTEM_PROMPT = `You are an expert resume analyst and ATS (Applicant Tracking System) evaluator with 15+ years of experience in technical recruiting.
+const RESUME_ANALYSIS_PROMPT = `You are an elite resume analyst and ATS (Applicant Tracking System) evaluator with 20+ years of experience in technical recruiting across Fortune 500 companies.
 
-Your task is to perform a comprehensive analysis of the provided resume and return a structured JSON response.
+Perform a comprehensive, no-holds-barred analysis of the provided resume. Evaluate against 15+ ATS criteria used by real enterprise systems.
+
+Return a JSON object with this EXACT structure:
+{
+  "score": <number 0-100, overall resume quality>,
+  "atsScore": <number 0-100, ATS compatibility>,
+  "summary": "<string, 2-3 sentence executive assessment>",
+  "skills": ["<detected skills array, both technical and soft>"],
+  "strengths": ["<specific strengths with examples from resume>"],
+  "weaknesses": ["<specific weaknesses with actionable fixes>"],
+  "suggestions": ["<prioritized improvement suggestions>"],
+  "sectionScores": {
+    "contactInfo": <0-100>,
+    "summary": <0-100>,
+    "experience": <0-100>,
+    "education": <0-100>,
+    "skills": <0-100>,
+    "formatting": <0-100>,
+    "keywords": <0-100>,
+    "achievements": <0-100>
+  },
+  "atsDetails": {
+    "parsability": "<string assessment of machine readability>",
+    "keywordDensity": "<string, keyword optimization level>",
+    "formattingIssues": ["<list of ATS-breaking formatting problems>"],
+    "missingStandardSections": ["<sections that ATS systems expect but are missing>"],
+    "actionVerbs": <number, count of strong action verbs used>,
+    "quantifiedAchievements": <number, count of measurable results>,
+    "bulletPointConsistency": "<string assessment>"
+  },
+  "industryFit": "<string, detected industry and how well resume fits>"
+}
 
 IMPORTANT RULES:
-- Return ONLY valid JSON — no markdown, no code fences, no extra text.
-- All scores must be integers between 0 and 100.
-- Arrays should contain 3-7 items each, as concise bullet points.
-- Be specific and actionable in your feedback.
+- Be brutally honest. Do not inflate scores.
+- Every strength must reference something specific in the resume.
+- Every weakness must include HOW to fix it.
+- Suggestions should be prioritized by impact (highest first).
+- Detect the industry from the resume content and evaluate accordingly.`;
 
-REQUIRED JSON FORMAT:
+const JOB_MATCH_PROMPT = `You are a senior technical recruiter with 20+ years of experience matching candidates to roles.
+
+Analyze the provided resume against the given job description. Evaluate how well the candidate matches the requirements.
+
+Return a JSON object with this EXACT structure:
 {
-  "score": <number 0-100, overall resume quality score>,
-  "atsScore": <number 0-100, ATS compatibility score>,
-  "skills": [<list of technical and soft skills found>],
-  "strengths": [<specific strong points of the resume>],
-  "weaknesses": [<specific areas that need improvement>],
-  "suggestions": [<actionable improvement recommendations>],
-  "summary": "<2-3 sentence professional summary of the candidate>"
+  "matchScore": <number 0-100, overall match percentage>,
+  "summary": "<string, 2-3 sentence match assessment>",
+  "strengths": ["<candidate strengths relative to this specific job>"],
+  "weaknesses": ["<gaps between candidate and job requirements>"],
+  "suggestions": ["<specific actions to improve match for THIS role>"],
+  "missingSkills": ["<required skills the candidate lacks>"],
+  "matchingSkills": ["<required skills the candidate has>"],
+  "experienceMatch": "<string, how experience level aligns>",
+  "keywordGaps": ["<important keywords from JD missing in resume>"],
+  "interviewTips": ["<preparation tips specific to this role>"]
+}
+
+Be specific. Reference actual content from both the resume and job description.`;
+
+const LINKEDIN_ANALYSIS_PROMPT = `You are a LinkedIn optimization expert and personal branding consultant who has helped 10,000+ professionals improve their LinkedIn presence.
+
+Analyze the provided LinkedIn profile data and provide comprehensive improvement suggestions.
+
+Return a JSON object with this EXACT structure:
+{
+  "overallScore": <number 0-100, LinkedIn profile strength>,
+  "summary": "<string, 2-3 sentence profile assessment>",
+  "headlineScore": <0-100>,
+  "aboutScore": <0-100>,
+  "experienceScore": <0-100>,
+  "skillsScore": <0-100>,
+  "strengths": ["<what the profile does well>"],
+  "improvements": ["<specific, actionable improvements>"],
+  "headlineSuggestions": ["<3 alternative headline options>"],
+  "aboutSuggestion": "<string, rewritten About section suggestion>",
+  "keywordSuggestions": ["<keywords to add for better discoverability>"],
+  "networkingTips": ["<tips to improve engagement and visibility>"],
+  "contentIdeas": ["<post/article ideas relevant to their field>"]
 }`;
 
-const JOB_MATCH_SYSTEM_PROMPT = `You are an expert technical recruiter and ATS specialist with 15+ years of experience matching candidates to job descriptions.
+const RESUME_GENERATION_PROMPT = `You are an expert resume writer who creates ATS-optimized, professionally formatted resumes.
 
-Your task is to compare the provided resume against the job description and return a structured JSON analysis.
+Using the provided LinkedIn profile data and target role, generate a complete, ATS-friendly resume.
 
-IMPORTANT RULES:
-- Return ONLY valid JSON — no markdown, no code fences, no extra text.
-- All scores must be integers between 0 and 100.
-- Be specific about which skills are missing and why they matter for the role.
-- Provide actionable suggestions for improving the match.
-
-REQUIRED JSON FORMAT:
+Return a JSON object with this EXACT structure:
 {
-  "matchScore": <number 0-100, how well resume matches the job>,
-  "missingSkills": [<skills required by job but missing from resume>],
-  "suggestions": [<specific actions to improve match for this role>],
-  "strengths": [<how the candidate is a good fit>],
-  "weaknesses": [<gaps between resume and job requirements>],
-  "summary": "<2-3 sentence assessment of candidate-job fit>"
-}`;
+  "resumeText": "<string, the complete resume in clean text format>",
+  "resumeMarkdown": "<string, the resume in well-formatted Markdown>",
+  "targetKeywords": ["<keywords optimized for the target role>"],
+  "summary": "<string, professional summary section>",
+  "optimizationNotes": ["<notes about what was optimized for ATS>"],
+  "estimatedAtsScore": <number 0-100, predicted ATS score>
+}
+
+FORMATTING RULES:
+- Use clean, standard sections: Summary, Experience, Education, Skills, Certifications
+- Use strong action verbs (Led, Developed, Implemented, etc.)
+- Include quantified achievements wherever possible
+- Keep to 1-2 pages equivalent length
+- Optimize keyword placement for ATS scanning`;
+
+
+// ─── Core AI Functions ────────────────────────────────────────
+
+/**
+ * Make a Gemini API call with retry logic.
+ * @param {string} modelId - Model to use
+ * @param {string} systemPrompt - System instruction
+ * @param {string} userContent - User input text
+ * @returns {Promise<Object>} Parsed JSON response
+ */
+async function callGemini(modelId, systemPrompt, userContent) {
+  const ai = getGenAI();
+  const maxRetries = config.ai.maxRetries;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const startTime = Date.now();
+
+      const response = await ai.models.generateContent({
+        model: modelId,
+        contents: userContent,
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+        },
+      });
+
+      const elapsed = Date.now() - startTime;
+      const text = response.text;
+
+      logger.info(`Gemini ${modelId} responded in ${elapsed}ms (attempt ${attempt})`);
+
+      // Parse JSON response
+      const parsed = JSON.parse(text);
+      return parsed;
+
+    } catch (error) {
+      logger.error(`Gemini API attempt ${attempt}/${maxRetries} failed:`, {
+        model: modelId,
+        error: error.message,
+      });
+
+      if (attempt === maxRetries) {
+        throw new Error(`AI analysis failed after ${maxRetries} attempts: ${error.message}`);
+      }
+
+      // Exponential backoff: 2s, 4s, 8s
+      const delay = 2000 * Math.pow(2, attempt - 1);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
+
+// ─── Exported Service Methods ─────────────────────────────────
 
 const aiService = {
   /**
-   * Analyze a resume — single comprehensive AI call.
-   * Replaces the old pattern of 3 separate calls (analyzeResume + extractSkills + scoreResume).
-   * 
-   * @param {string} resumeText - Cleaned resume text
-   * @returns {Promise<Object>} Structured analysis result
-   */
-  async analyzeResume(resumeText) {
-    const userPrompt = `Analyze the following resume:\n\n${resumeText}`;
-
-    const result = await this._callWithRetry(
-      RESUME_ANALYSIS_SYSTEM_PROMPT,
-      userPrompt,
-      REQUIRED_ANALYSIS_FIELDS
-    );
-
-    return result;
-  },
-
-  /**
-   * Match a resume against a job description.
-   * 
-   * @param {string} resumeText - Cleaned resume text
-   * @param {string} jobDescription - Job description text
-   * @returns {Promise<Object>} Structured match result
-   */
-  async matchJob(resumeText, jobDescription) {
-    const userPrompt = `Compare this resume against the job description.\n\nRESUME:\n${resumeText}\n\nJOB DESCRIPTION:\n${jobDescription}`;
-
-    const result = await this._callWithRetry(
-      JOB_MATCH_SYSTEM_PROMPT,
-      userPrompt,
-      REQUIRED_JOB_MATCH_FIELDS
-    );
-
-    return result;
-  },
-
-  // ─── Private Helpers ─────────────────────────────────────────
-
-  /**
-   * Call OpenAI with retry logic and response validation.
-   * Retries on transient failures with exponential backoff.
-   * 
-   * @param {string} systemPrompt
-   * @param {string} userPrompt
-   * @param {string[]} requiredFields - Fields to validate in response
+   * Full resume analysis with 15+ ATS criteria.
+   * Uses Gemini 2.5 Pro for deepest analysis.
+   * @param {string} resumeText - Extracted resume text
+   * @param {string} tier - User subscription tier ('free'|'pro'|'enterprise')
    * @returns {Promise<Object>}
-   * @private
    */
-  async _callWithRetry(systemPrompt, userPrompt, requiredFields) {
-    const maxRetries = config.ai.maxRetries;
-    let lastError;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        logger.info(`AI call attempt ${attempt}/${maxRetries}`, {
-          model: config.ai.model,
-          promptLength: userPrompt.length,
-        });
-
-        const startTime = Date.now();
-
-        const response = await getOpenAI().chat.completions.create({
-          model: config.ai.model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.3, // Low temperature for consistent structured output
-          max_tokens: 2000,
-        });
-
-        const elapsed = Date.now() - startTime;
-        const rawContent = response.choices[0].message.content;
-
-        logger.info(`AI response received in ${elapsed}ms`, {
-          tokens: response.usage?.total_tokens,
-          attempt,
-        });
-
-        // Parse and validate JSON response
-        const parsed = this._parseAIResponse(rawContent);
-        this._validateResponse(parsed, requiredFields);
-
-        return parsed;
-      } catch (error) {
-        lastError = error;
-
-        // Don't retry on validation errors (AI returned wrong format)
-        // or client errors (bad API key, etc.)
-        const isRetryable = this._isRetryableError(error);
-
-        if (!isRetryable || attempt === maxRetries) {
-          logger.error(`AI call failed (attempt ${attempt}/${maxRetries}):`, {
-            error: error.message,
-            retryable: isRetryable,
-          });
-          break;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const delay = 1000 * Math.pow(2, attempt - 1);
-        logger.warn(`AI call failed, retrying in ${delay}ms...`, {
-          attempt,
-          error: error.message,
-        });
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-
-    throw new Error(`AI analysis failed after ${maxRetries} attempts: ${lastError.message}`);
+  async analyzeResume(resumeText, tier = 'free') {
+    const model = tier === 'free' ? config.ai.flashModel : config.ai.proModel;
+    return callGemini(model, RESUME_ANALYSIS_PROMPT, resumeText);
   },
 
   /**
-   * Parse AI response content as JSON.
-   * Handles common issues like markdown code fences wrapping the JSON.
-   * 
-   * @param {string} content
-   * @returns {Object}
-   * @private
+   * Resume vs job description match analysis.
+   * @param {string} resumeText
+   * @param {string} jobDescription
+   * @param {string} tier
+   * @returns {Promise<Object>}
    */
-  _parseAIResponse(content) {
-    if (!content) {
-      throw new Error('AI returned empty response');
-    }
-
-    // Strip markdown code fences if present (```json ... ```)
-    let cleaned = content.trim();
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-    }
-
-    try {
-      return JSON.parse(cleaned);
-    } catch (error) {
-      logger.error('Failed to parse AI response as JSON:', {
-        content: cleaned.slice(0, 200),
-      });
-      throw new Error('AI returned invalid JSON response');
-    }
+  async matchJob(resumeText, jobDescription, tier = 'free') {
+    const model = tier === 'free' ? config.ai.flashModel : config.ai.proModel;
+    const content = `=== RESUME ===\n${resumeText}\n\n=== JOB DESCRIPTION ===\n${jobDescription}`;
+    return callGemini(model, JOB_MATCH_PROMPT, content);
   },
 
   /**
-   * Validate that the parsed response contains all required fields.
-   * 
-   * @param {Object} response
-   * @param {string[]} requiredFields
-   * @private
+   * Analyze LinkedIn profile and provide tips.
+   * Uses Gemini 2.5 Flash for speed.
+   * @param {string} profileText - Pasted LinkedIn profile text
+   * @returns {Promise<Object>}
    */
-  _validateResponse(response, requiredFields) {
-    const missing = requiredFields.filter((field) => !(field in response));
-
-    if (missing.length > 0) {
-      logger.warn('AI response missing fields:', { missing });
-      // Don't throw — fill in defaults for missing fields
-      for (const field of missing) {
-        if (field.includes('score') || field.includes('Score')) {
-          response[field] = 0;
-        } else if (field === 'summary') {
-          response[field] = '';
-        } else {
-          response[field] = [];
-        }
-      }
-    }
+  async analyzeLinkedIn(profileText) {
+    return callGemini(config.ai.flashModel, LINKEDIN_ANALYSIS_PROMPT, profileText);
   },
 
   /**
-   * Determine if an error is retryable (transient network/rate-limit issue).
-   * 
-   * @param {Error} error
-   * @returns {boolean}
-   * @private
+   * Generate ATS-friendly resume from LinkedIn data.
+   * Uses Gemini 2.5 Pro for quality generation.
+   * @param {string} profileText - LinkedIn profile data
+   * @param {string} targetRole - Target job title/role
+   * @returns {Promise<Object>}
    */
-  _isRetryableError(error) {
-    // Rate limit errors
-    if (error.status === 429) return true;
-
-    // Server errors (OpenAI is down)
-    if (error.status >= 500) return true;
-
-    // Network errors
-    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return true;
-    if (error.message?.includes('timeout')) return true;
-
-    return false;
+  async generateResumeFromLinkedIn(profileText, targetRole) {
+    const content = `=== LINKEDIN PROFILE DATA ===\n${profileText}\n\n=== TARGET ROLE ===\n${targetRole}`;
+    return callGemini(config.ai.proModel, RESUME_GENERATION_PROMPT, content);
   },
 };
 

@@ -37,6 +37,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false, // Never return refresh token by default
     },
+
+    // ─── Subscription Fields ────────────────────────────────
+    subscription: {
+      plan: {
+        type: String,
+        enum: ['free', 'pro', 'enterprise'],
+        default: 'free',
+      },
+      stripeCustomerId: { type: String, default: null },
+      stripeSubscriptionId: { type: String, default: null },
+      status: {
+        type: String,
+        enum: ['active', 'canceled', 'past_due', 'trialing', 'none'],
+        default: 'none',
+      },
+      currentPeriodEnd: { type: Date, default: null },
+    },
   },
   {
     timestamps: true, // Auto createdAt and updatedAt

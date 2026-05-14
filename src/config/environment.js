@@ -12,22 +12,21 @@ const coreRequiredVars = [
   'JWT_REFRESH_SECRET',
 ];
 
-// Service vars — required at runtime when services are used, but
-// allow the server to start so you can set them up incrementally
+// Service vars — warn if missing but allow startup
 const serviceVars = [
-  { key: 'OPENAI_API_KEY', service: 'AI Analysis' },
+  { key: 'GEMINI_API_KEY', service: 'AI Analysis (Gemini)' },
   { key: 'CLOUD_NAME', service: 'Cloudinary Upload' },
   { key: 'CLOUD_API_KEY', service: 'Cloudinary Upload' },
   { key: 'CLOUD_API_SECRET', service: 'Cloudinary Upload' },
   { key: 'REDIS_URL', service: 'Background Queue' },
+  { key: 'STRIPE_SECRET_KEY', service: 'Stripe Payments' },
+  { key: 'STRIPE_WEBHOOK_SECRET', service: 'Stripe Webhooks' },
 ];
 
 /**
  * Validate that all required environment variables are set.
- * Call this at startup before any other initialization.
  */
 function validateEnvironment() {
-  // 1. Check core variables (hard fail)
   const missingCore = coreRequiredVars.filter((key) => !process.env[key]);
   if (missingCore.length > 0) {
     throw new Error(
@@ -35,11 +34,10 @@ function validateEnvironment() {
     );
   }
 
-  // 2. Warn about missing service variables (soft fail — allows dev startup)
   const missingServices = serviceVars.filter((v) => !process.env[v.key]);
   if (missingServices.length > 0) {
     console.warn(
-      `\n⚠️  Missing optional service variables (some features will be unavailable):\n` +
+      `\n⚠️  Missing optional service variables (some features unavailable):\n` +
       missingServices.map((v) => `  - ${v.key} (${v.service})`).join('\n') +
       `\n`
     );
@@ -47,8 +45,7 @@ function validateEnvironment() {
 }
 
 /**
- * Typed configuration object — single source of truth for all env config.
- * Access via: const { config } = require('./config/environment');
+ * Typed configuration object — single source of truth.
  */
 const config = {
   // Server
@@ -67,11 +64,12 @@ const config = {
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
 
-  // OpenAI
+  // Google Gemini AI
   ai: {
-    apiKey: process.env.OPENAI_API_KEY,
-    model: process.env.AI_MODEL || 'gpt-4o-mini',
-    timeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '30000', 10),
+    apiKey: process.env.GEMINI_API_KEY,
+    proModel: process.env.AI_PRO_MODEL || 'gemini-2.5-pro-preview-06-05',
+    flashModel: process.env.AI_FLASH_MODEL || 'gemini-2.5-flash-preview-05-20',
+    timeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '60000', 10),
     maxRetries: parseInt(process.env.AI_MAX_RETRIES || '3', 10),
   },
 
@@ -84,6 +82,14 @@ const config = {
 
   // Redis
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+
+  // Stripe
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    priceProMonthly: process.env.STRIPE_PRICE_PRO || '',
+    priceEnterpriseMonthly: process.env.STRIPE_PRICE_ENTERPRISE || '',
+  },
 
   // CORS
   corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173')

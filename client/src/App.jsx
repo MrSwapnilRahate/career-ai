@@ -11,6 +11,9 @@ import JobMatchPage from './pages/JobMatchPage';
 import ResultPage from './pages/ResultPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
+import PricingPage from './pages/PricingPage';
+import LinkedInPage from './pages/LinkedInPage';
+import PhotoStudioPage from './pages/PhotoStudioPage';
 
 export default function App() {
   return (
@@ -22,6 +25,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -30,6 +34,8 @@ export default function App() {
           <Route path="/result/:id" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/linkedin" element={<ProtectedRoute><LinkedInPage /></ProtectedRoute>} />
+          <Route path="/photo-studio" element={<ProtectedRoute><PhotoStudioPage /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

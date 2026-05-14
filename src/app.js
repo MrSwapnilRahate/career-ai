@@ -19,6 +19,9 @@ const requestLogger = require('./middleware/requestLogger');
 // ─── Route Imports ────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const linkedinRoutes = require('./routes/linkedinRoutes');
+const imageRoutes = require('./routes/imageRoutes');
 
 // ─── Global Middleware ────────────────────────────────────────
 
@@ -46,13 +49,16 @@ app.use('/api', apiLimiter);
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/linkedin', linkedinRoutes);
+app.use('/api/images', imageRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Resume Analyzer API running',
-    version: '2.0.0',
+    message: 'CareerAI Platform API running',
+    version: '3.0.0',
     timestamp: new Date().toISOString(),
   });
 });

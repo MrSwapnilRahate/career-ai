@@ -32,7 +32,7 @@ export default function Navbar() {
               </defs>
             </svg>
           </div>
-          <span className="brand-text">Resume<span className="text-gradient">AI</span></span>
+          <span className="brand-text">Career<span className="text-gradient">AI</span></span>
         </Link>
 
         <div className="navbar-links">
@@ -44,13 +44,19 @@ export default function Navbar() {
               <Link to="/upload" className={`nav-link ${location.pathname === '/upload' ? 'active' : ''}`}>
                 Upload
               </Link>
-              <Link to="/job-match" className={`nav-link ${location.pathname === '/job-match' ? 'active' : ''}`}>
-                Job Match
+              <Link to="/linkedin" className={`nav-link ${location.pathname === '/linkedin' ? 'active' : ''}`}>
+                LinkedIn
+              </Link>
+              <Link to="/photo-studio" className={`nav-link ${location.pathname === '/photo-studio' ? 'active' : ''}`}>
+                Photos
               </Link>
               <Link to="/history" className={`nav-link ${location.pathname === '/history' ? 'active' : ''}`}>
                 History
               </Link>
               <div className="nav-divider" />
+              {user?.subscription?.plan && user.subscription.plan !== 'free' && (
+                <span className="plan-badge-nav">{user.subscription.plan.toUpperCase()}</span>
+              )}
               <div className="user-menu">
                 <div className="user-avatar">
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -62,12 +68,14 @@ export default function Navbar() {
                   </div>
                   <div className="dropdown-divider" />
                   <Link to="/profile" className="dropdown-item">Profile</Link>
+                  <Link to="/pricing" className="dropdown-item">Pricing</Link>
                   <button onClick={handleLogout} className="dropdown-item dropdown-logout">Logout</button>
                 </div>
               </div>
             </>
           ) : (
             <>
+              <Link to="/pricing" className="nav-link">Pricing</Link>
               <Link to="/login" className="nav-link">Login</Link>
               <Link to="/signup" className="btn btn-primary btn-sm">Get Started</Link>
             </>
