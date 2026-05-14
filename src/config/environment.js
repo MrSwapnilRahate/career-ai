@@ -5,15 +5,21 @@
  * Import this instead of using process.env directly throughout the app.
  */
 
-const requiredVars = [
+// Core vars required for the server to start at all
+const coreRequiredVars = [
   'MONGO_URI',
   'JWT_SECRET',
   'JWT_REFRESH_SECRET',
-  'OPENAI_API_KEY',
-  'CLOUD_NAME',
-  'CLOUD_API_KEY',
-  'CLOUD_API_SECRET',
-  'REDIS_URL',
+];
+
+// Service vars — required at runtime when services are used, but
+// allow the server to start so you can set them up incrementally
+const serviceVars = [
+  { key: 'OPENAI_API_KEY', service: 'AI Analysis' },
+  { key: 'CLOUD_NAME', service: 'Cloudinary Upload' },
+  { key: 'CLOUD_API_KEY', service: 'Cloudinary Upload' },
+  { key: 'CLOUD_API_SECRET', service: 'Cloudinary Upload' },
+  { key: 'REDIS_URL', service: 'Background Queue' },
 ];
 
 /**
@@ -21,11 +27,21 @@ const requiredVars = [
  * Call this at startup before any other initialization.
  */
 function validateEnvironment() {
-  const missing = requiredVars.filter((key) => !process.env[key]);
-
-  if (missing.length > 0) {
+  // 1. Check core variables (hard fail)
+  const missingCore = coreRequiredVars.filter((key) => !process.env[key]);
+  if (missingCore.length > 0) {
     throw new Error(
-      `Missing required environment variables:\n  ${missing.join('\n  ')}\n\nSee .env.example for reference.`
+      `Missing REQUIRED environment variables:\n  ${missingCore.join('\n  ')}\n\nSee .env.example for reference.`
+    );
+  }
+
+  // 2. Warn about missing service variables (soft fail — allows dev startup)
+  const missingServices = serviceVars.filter((v) => !process.env[v.key]);
+  if (missingServices.length > 0) {
+    console.warn(
+      `\n⚠️  Missing optional service variables (some features will be unavailable):\n` +
+      missingServices.map((v) => `  - ${v.key} (${v.service})`).join('\n') +
+      `\n`
     );
   }
 }

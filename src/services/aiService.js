@@ -14,10 +14,17 @@ const OpenAI = require('openai');
 const { config } = require('../config/environment');
 const logger = require('../utils/logger');
 
-const openai = new OpenAI({
-  apiKey: config.ai.apiKey,
-  timeout: config.ai.timeoutMs,
-});
+// Lazy-initialized — created on first use to avoid crash when API key is missing at import time
+let _openai;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({
+      apiKey: config.ai.apiKey,
+      timeout: config.ai.timeoutMs,
+    });
+  }
+  return _openai;
+}
 
 // ─── Response Schema (for validation) ─────────────────────────
 const REQUIRED_ANALYSIS_FIELDS = ['score', 'atsScore', 'skills', 'strengths', 'weaknesses', 'suggestions', 'summary'];
@@ -130,7 +137,7 @@ const aiService = {
 
         const startTime = Date.now();
 
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAI().chat.completions.create({
           model: config.ai.model,
           messages: [
             { role: 'system', content: systemPrompt },
