@@ -1,0 +1,35 @@
+# ─── CareerAI — Render Deployment Config ─────────────────────
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: career-ai-api
+    runtime: docker
+    repo: https://github.com/MrSwapnilRahate/career-ai
+    branch: main
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5001"
+      - key: MONGO_URI
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLOUD_NAME
+        sync: false
+      - key: CLOUD_API_KEY
+        sync: false
+      - key: CLOUD_API_SECRET
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false  # Set to your Vercel frontend URL

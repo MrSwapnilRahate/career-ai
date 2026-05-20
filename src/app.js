@@ -74,8 +74,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─── Serve Frontend in Production ─────────────────────────────
+const path = require('path');
+const frontendPath = path.join(__dirname, '..', 'client', 'dist');
+
+if (config.nodeEnv === 'production') {
+  app.use(express.static(frontendPath));
+}
+
 // ─── 404 Handler ──────────────────────────────────────────────
 app.use((req, res) => {
+  // In production, serve React app for non-API routes (SPA routing)
+  if (config.nodeEnv === 'production' && !req.originalUrl.startsWith('/api')) {
+    return res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+
   res.status(404).json({
     success: false,
     error: {
