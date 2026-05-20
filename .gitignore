@@ -1,15 +1,37 @@
-.env
+# ─── Dependencies ──────────────────────────────────────────────
 node_modules/
+client/node_modules/
+
+# ─── Environment ──────────────────────────────────────────────
+.env
+.env.local
+.env.production
+
+# ─── Build Output ──────────────────────────────────────────────
+client/dist/
+dist/
+
+# ─── Logs ──────────────────────────────────────────────────────
 logs/
+*.log
+
+# ─── Uploads (local dev) ──────────────────────────────────────
 uploads/
 
-# Redis
+# ─── Redis ─────────────────────────────────────────────────────
 dump.rdb
 
-# OS
+# ─── OS Files ──────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# IDE
+# ─── IDE / Editor ──────────────────────────────────────────────
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# ─── Coverage / Testing ───────────────────────────────────────
+coverage/
+.nyc_output/

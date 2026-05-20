@@ -39,7 +39,7 @@ const devFormat = winston.format.combine(
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: logFormat,
-  defaultMeta: { service: 'resume-analyzer' },
+  defaultMeta: { service: 'career-ai' },
   transports: [
     // Console output (pretty in dev, JSON in prod)
     new winston.transports.Console({
