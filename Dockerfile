@@ -1,5 +1,5 @@
 # ─── Stage 1: Build frontend ──────────────────────────────────
-FROM node:18-alpine AS frontend-build
+FROM node:20-alpine AS frontend-build
 
 WORKDIR /app/client
 COPY client/package*.json ./
@@ -8,7 +8,7 @@ COPY client/ ./
 RUN npm run build
 
 # ─── Stage 2: Production backend ─────────────────────────────
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Security: run as non-root user
 RUN addgroup -g 1001 -S careerai && \
