@@ -13,7 +13,7 @@ const IORedis = require('ioredis');
  * Parse Redis URL into IORedis connection options.
  */
 function getRedisOptions() {
-  return {
+  const opts = {
     maxRetriesPerRequest: null, // Required by BullMQ
     enableReadyCheck: false,    // Required by BullMQ
     retryStrategy(times) {
@@ -26,6 +26,13 @@ function getRedisOptions() {
       return delay;
     },
   };
+
+  // Enable TLS for Upstash / cloud Redis (rediss:// URLs)
+  if (config.redisUrl && config.redisUrl.startsWith('rediss://')) {
+    opts.tls = {};
+  }
+
+  return opts;
 }
 
 /**

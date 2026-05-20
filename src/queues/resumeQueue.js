@@ -16,6 +16,7 @@
 
 const { Queue } = require('bullmq');
 const { config } = require('../config/environment');
+const { getRedisOptions } = require('../config/redis');
 const logger = require('../utils/logger');
 
 const QUEUE_NAME = 'resume-analysis';
@@ -27,6 +28,7 @@ function getResumeQueue() {
     _queue = new Queue(QUEUE_NAME, {
       connection: {
         url: config.redisUrl,
+        ...getRedisOptions(),
       },
       defaultJobOptions: {
         attempts: 3,

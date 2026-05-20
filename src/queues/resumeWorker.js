@@ -16,6 +16,7 @@
 
 const { Worker } = require('bullmq');
 const { config } = require('../config/environment');
+const { getRedisOptions } = require('../config/redis');
 const analysisRepository = require('../repositories/analysisRepository');
 const pdfService = require('../services/pdfService');
 const aiService = require('../services/aiService');
@@ -104,6 +105,7 @@ function startWorker() {
     {
       connection: {
         url: config.redisUrl,
+        ...getRedisOptions(),
       },
       concurrency: CONCURRENCY,
       limiter: {
