@@ -13,6 +13,37 @@ const logger = require('../utils/logger');
 
 const pdfService = {
   /**
+   * Extract text directly from a file buffer (memory upload).
+   * @param {Buffer} buffer - File buffer from multer memory storage
+   * @param {string} mimeType - File MIME type
+   * @returns {Promise<string>} Cleaned text content
+   */
+  async extractTextFromBuffer(buffer, mimeType = 'application/pdf') {
+    logger.info('Extracting text from buffer', { size: buffer.length, mimeType });
+
+    let rawText;
+
+    if (mimeType === 'application/pdf') {
+      rawText = await this._extractFromPdf(buffer);
+    } else if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+      rawText = await this._extractFromDocx(buffer);
+    } else {
+      throw new Error(`Unsupported file type: ${mimeType}`);
+    }
+
+    const cleanedText = this._cleanText(rawText);
+
+    logger.info('Buffer text extraction completed', {
+      rawLength: rawText.length,
+      cleanedLength: cleanedText.length,
+    });
+
+    return cleanedText;
+  },
+
+  /**
    * Extract text from a file URL (Cloudinary).
    * Supports PDF and DOCX formats.
    * @param {string} fileUrl - Cloudinary file URL

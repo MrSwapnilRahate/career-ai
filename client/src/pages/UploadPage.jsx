@@ -43,8 +43,15 @@ export default function UploadPage() {
     setUploading(true);
     try {
       const res = await resumeAPI.upload(file);
-      setJobId(res.data.jobId);
-      setStatus('queued');
+      if (res.data.status === 'completed') {
+        // Sync mode — result ready immediately
+        setStatus('completed');
+        setTimeout(() => navigate(`/result/${res.data.analysisId}`), 800);
+      } else {
+        // Async mode — poll for result
+        setJobId(res.data.jobId);
+        setStatus('queued');
+      }
     } catch (err) {
       setError(err.message || 'Upload failed');
       setUploading(false);
@@ -87,7 +94,7 @@ export default function UploadPage() {
           <p>Drop your PDF or DOCX file and let our AI analyze it in seconds.</p>
         </div>
 
-        {!jobId ? (
+        {!jobId && !status ? (
           <div className="upload-area glass-card">
             <div
               className={`dropzone ${dragOver ? 'dropzone-active' : ''} ${file ? 'dropzone-has-file' : ''}`}

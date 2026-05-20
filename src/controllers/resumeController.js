@@ -14,8 +14,8 @@ const { incrementUsage } = require('../middleware/subscriptionMiddleware');
 
 /**
  * POST /api/resume/upload
- * Upload a resume for AI analysis (async processing).
- * Returns jobId immediately — client polls for result.
+ * Upload a resume for AI analysis.
+ * Returns immediately with jobId (async) or waits for result (sync).
  */
 exports.uploadResume = async (req, res, next) => {
   try {
@@ -23,20 +23,33 @@ exports.uploadResume = async (req, res, next) => {
       throw new ValidationError('Resume file is required');
     }
 
-    const { jobId, analysisId } = await resumeService.submitForAnalysis(
+    const result = await resumeService.submitForAnalysis(
       req.user.id,
       req.file
     );
 
-    res.status(202).json({
-      success: true,
-      message: 'Resume uploaded successfully. Analysis is being processed.',
-      data: {
-        jobId,
-        analysisId,
-        statusUrl: `/api/resume/status/${jobId}`,
-      },
-    });
+    if (result.mode === 'async') {
+      // Redis available — client polls for result
+      res.status(202).json({
+        success: true,
+        message: 'Resume uploaded successfully. Analysis is being processed.',
+        data: {
+          jobId: result.jobId,
+          analysisId: result.analysisId,
+          statusUrl: `/api/resume/status/${result.jobId}`,
+        },
+      });
+    } else {
+      // Sync mode — result is ready
+      res.status(200).json({
+        success: true,
+        message: 'Resume analysis completed.',
+        data: {
+          analysisId: result.analysisId,
+          status: 'completed',
+        },
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -44,8 +57,7 @@ exports.uploadResume = async (req, res, next) => {
 
 /**
  * POST /api/resume/job-match
- * Upload a resume + job description for AI matching (async processing).
- * Returns jobId immediately — client polls for result.
+ * Upload a resume + job description for AI matching.
  */
 exports.jobMatch = async (req, res, next) => {
   try {
@@ -59,21 +71,32 @@ exports.jobMatch = async (req, res, next) => {
       throw new ValidationError('Job description must be at least 20 characters');
     }
 
-    const { jobId, analysisId } = await resumeService.submitForAnalysis(
+    const result = await resumeService.submitForAnalysis(
       req.user.id,
       req.file,
       jobDescription
     );
 
-    res.status(202).json({
-      success: true,
-      message: 'Job match analysis submitted. Processing in background.',
-      data: {
-        jobId,
-        analysisId,
-        statusUrl: `/api/resume/status/${jobId}`,
-      },
-    });
+    if (result.mode === 'async') {
+      res.status(202).json({
+        success: true,
+        message: 'Job match analysis submitted. Processing in background.',
+        data: {
+          jobId: result.jobId,
+          analysisId: result.analysisId,
+          statusUrl: `/api/resume/status/${result.jobId}`,
+        },
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'Job match analysis completed.',
+        data: {
+          analysisId: result.analysisId,
+          status: 'completed',
+        },
+      });
+    }
   } catch (error) {
     next(error);
   }
