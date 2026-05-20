@@ -7,6 +7,8 @@
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
 const { config } = require('./config/environment');
 
 const app = express();
@@ -23,16 +25,27 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const linkedinRoutes = require('./routes/linkedinRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 
-// ─── Global Middleware ────────────────────────────────────────
+// ─── Security & Performance Middleware ────────────────────────
 
 // Trust proxy (required for rate limiting behind reverse proxy)
 app.set('trust proxy', 1);
+
+// Helmet — sets secure HTTP headers (XSS, clickjacking, MIME sniff protection)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow Cloudinary assets
+  contentSecurityPolicy: false, // Disable CSP for API-only (frontend handles its own)
+}));
+
+// GZIP compression — reduces response size by ~70%
+app.use(compression());
 
 // CORS
 app.use(
   cors({
     origin: config.corsOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -74,21 +87,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ─── Serve Frontend in Production ─────────────────────────────
-const path = require('path');
-const frontendPath = path.join(__dirname, '..', 'client', 'dist');
-
-if (config.nodeEnv === 'production') {
-  app.use(express.static(frontendPath));
-}
-
 // ─── 404 Handler ──────────────────────────────────────────────
 app.use((req, res) => {
-  // In production, serve React app for non-API routes (SPA routing)
-  if (config.nodeEnv === 'production' && !req.originalUrl.startsWith('/api')) {
-    return res.sendFile(path.join(frontendPath, 'index.html'));
-  }
-
   res.status(404).json({
     success: false,
     error: {

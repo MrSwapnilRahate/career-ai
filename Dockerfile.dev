@@ -1,0 +1,22 @@
+# ─── CareerAI Backend — Development Dockerfile ───────────────
+# Used by docker-compose for local development with hot reload
+# ──────────────────────────────────────────────────────────────
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install ALL dependencies (including devDependencies for nodemon)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source
+COPY server.js ./
+COPY src/ ./src/
+
+ENV NODE_ENV=development
+ENV PORT=5001
+
+EXPOSE 5001
+
+CMD ["npx", "nodemon", "server.js"]

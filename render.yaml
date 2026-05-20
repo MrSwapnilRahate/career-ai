@@ -1,5 +1,7 @@
-# ─── CareerAI — Render Deployment Config ─────────────────────
+# ─── CareerAI Backend — Render Deployment ────────────────────
+# Backend API only — Frontend deploys to Vercel
 # https://render.com/docs/blueprint-spec
+# ──────────────────────────────────────────────────────────────
 
 services:
   - type: web
@@ -16,7 +18,7 @@ services:
       - key: PORT
         value: "5001"
       - key: MONGO_URI
-        sync: false  # Set manually in Render dashboard
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

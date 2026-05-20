@@ -1,32 +1,32 @@
 # ─── CareerAI Platform — Local Development ───────────────────
-# Usage: docker-compose up --build
+# Usage: docker-compose up
+# Backend: http://localhost:5001
+# Frontend: npm run client:dev → http://localhost:5173
 # ──────────────────────────────────────────────────────────────
 
 version: "3.9"
 
 services:
-  # ─── Backend API ─────────────────────────────────────────────
+  # ─── Backend API (hot reload via nodemon) ────────────────────
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     container_name: career-ai-api
     ports:
       - "5001:5001"
     env_file:
       - .env
-    environment:
-      - NODE_ENV=production
+    volumes:
+      - ./server.js:/app/server.js
+      - ./src:/app/src
+      - /app/node_modules
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
     restart: unless-stopped
 
-  # ─── Redis (local dev — replace with Upstash in production) ─
+  # ─── Redis (local dev queue) ─────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: career-ai-redis

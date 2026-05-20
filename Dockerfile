@@ -1,13 +1,8 @@
-# ─── Stage 1: Build frontend ──────────────────────────────────
-FROM node:20-alpine AS frontend-build
+# ─── CareerAI Backend — Production Dockerfile ────────────────
+# Optimized for Render deployment (backend API only)
+# Frontend deploys separately to Vercel
+# ──────────────────────────────────────────────────────────────
 
-WORKDIR /app/client
-COPY client/package*.json ./
-RUN npm ci --production=false
-COPY client/ ./
-RUN npm run build
-
-# ─── Stage 2: Production backend ─────────────────────────────
 FROM node:20-alpine AS production
 
 # Security: run as non-root user
@@ -16,16 +11,13 @@ RUN addgroup -g 1001 -S careerai && \
 
 WORKDIR /app
 
-# Install production dependencies only
+# Install production dependencies only (layer caching)
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy backend source
 COPY server.js ./
 COPY src/ ./src/
-
-# Copy built frontend from Stage 1
-COPY --from=frontend-build /app/client/dist ./client/dist
 
 # Set ownership
 RUN chown -R careerai:careerai /app
