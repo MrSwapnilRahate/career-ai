@@ -7,7 +7,7 @@
  * - Consistent error response format
  */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'http://localhost:5001/api';
 
 /** Get stored tokens */
 function getTokens() {

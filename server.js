@@ -35,16 +35,20 @@ async function start() {
     // 2. Connect to MongoDB
     await connectDatabase();
 
-    // 3. Connect to Redis and start queue worker
-    try {
-      redisConnection = createRedisConnection();
-      worker = startWorker();
-      logger.info('✅ Queue worker started');
-    } catch (redisError) {
-      logger.warn('⚠️  Redis/Queue unavailable — running without background processing', {
-        error: redisError.message,
-      });
-      logger.warn('   Resume uploads will fail until Redis is available.');
+    // 3. Connect to Redis and start queue worker (only if configured)
+    if (config.redisUrl) {
+      try {
+        redisConnection = createRedisConnection();
+        worker = startWorker();
+        logger.info('✅ Queue worker started');
+      } catch (redisError) {
+        logger.warn('⚠️  Redis/Queue unavailable — running without background processing', {
+          error: redisError.message,
+        });
+      }
+    } else {
+      logger.info('ℹ️  Redis not configured — background job queue disabled');
+      logger.info('   Resume uploads will use synchronous processing');
     }
 
     // 4. Start HTTP server

@@ -67,8 +67,8 @@ const config = {
   // Google Gemini AI
   ai: {
     apiKey: process.env.GEMINI_API_KEY,
-    proModel: process.env.AI_PRO_MODEL || 'gemini-2.5-pro-preview-06-05',
-    flashModel: process.env.AI_FLASH_MODEL || 'gemini-2.5-flash-preview-05-20',
+    proModel: process.env.AI_PRO_MODEL || 'gemini-2.5-pro',
+    flashModel: process.env.AI_FLASH_MODEL || 'gemini-2.5-flash',
     timeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '60000', 10),
     maxRetries: parseInt(process.env.AI_MAX_RETRIES || '3', 10),
   },
@@ -81,7 +81,7 @@ const config = {
   },
 
   // Redis
-  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+  redisUrl: process.env.REDIS_URL || null,
 
   // Stripe
   stripe: {

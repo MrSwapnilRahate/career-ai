@@ -17,8 +17,12 @@ function getRedisOptions() {
     maxRetriesPerRequest: null, // Required by BullMQ
     enableReadyCheck: false,    // Required by BullMQ
     retryStrategy(times) {
-      const delay = Math.min(times * 500, 5000);
-      logger.warn(`Redis retry attempt ${times}, next retry in ${delay}ms`);
+      if (times > 3) {
+        logger.warn('Redis unavailable after 3 attempts — background jobs disabled');
+        return null; // Stop retrying
+      }
+      const delay = Math.min(times * 500, 3000);
+      if (times === 1) logger.warn(`Redis retry attempt ${times}, next retry in ${delay}ms`);
       return delay;
     },
   };
