@@ -24,6 +24,7 @@ const resumeRoutes = require('./routes/resumeRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const linkedinRoutes = require('./routes/linkedinRoutes');
 const imageRoutes = require('./routes/imageRoutes');
+const careerRoutes = require('./routes/careerRoutes');
 
 // ─── Security & Performance Middleware ────────────────────────
 
@@ -65,6 +66,7 @@ app.use('/api/resume', resumeRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/linkedin', linkedinRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api/career', careerRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

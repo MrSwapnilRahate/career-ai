@@ -4,12 +4,15 @@ import aiIllustration from '../assets/ai-illustration.png';
 import './LandingPage.css';
 
 const features = [
-  { icon: '🧠', title: 'AI-Powered Analysis', desc: 'Gemini 2.5 Pro evaluates your resume against 15+ ATS criteria with section-level scores.' },
+  { icon: '🧠', title: 'AI Resume Analyzer', desc: 'Gemini 2.5 Pro evaluates your resume against 15+ ATS criteria with section-level scores.' },
   { icon: '🎯', title: 'Job Match Scoring', desc: 'Compare your resume against any job description to see your exact match percentage and gaps.' },
+  { icon: '📝', title: 'Cover Letter Generator', desc: 'AI writes a tailored, compelling cover letter for any job in seconds — not generic templates.' },
+  { icon: '🎤', title: 'AI Interview Coach', desc: '10 personalized interview questions with STAR-method model answers and coaching tips.' },
+  { icon: '📊', title: 'Skills Gap Analyzer', desc: 'Discover missing skills, get a learning roadmap, career path, and certification recommendations.' },
+  { icon: '💰', title: 'Salary Intelligence', desc: 'Market salary data, negotiation scripts, and compensation insights for your target role.' },
   { icon: '🔗', title: 'LinkedIn Optimizer', desc: 'Paste your LinkedIn profile for AI-driven improvement tips and keyword optimization.' },
   { icon: '📄', title: 'AI Resume Generator', desc: 'Generate ATS-optimized resumes from your LinkedIn profile in one click.' },
   { icon: '📸', title: 'Professional Photos', desc: 'Generate stunning AI headshots and cover photos for your LinkedIn profile.' },
-  { icon: '📈', title: 'Track Progress', desc: 'Keep history of all analyses and track your career improvement over time.' },
 ];
 
 const steps = [
@@ -42,8 +45,8 @@ export default function LandingPage() {
               Career Intelligence
             </h1>
             <p className="hero-subtitle">
-              Upload your resume for AI scoring, optimize your LinkedIn profile, generate ATS-friendly resumes, 
-              and create professional photos — all powered by Gemini 2.5 Pro.
+              9 AI career tools in one platform — resume analysis, cover letters, interview prep, 
+              salary insights, and more. Powered by Gemini 2.5 Pro. Starting at $19/mo.
             </p>
             <div className="hero-actions">
               <Link to="/signup" className="btn btn-primary btn-lg">
@@ -77,9 +80,9 @@ export default function LandingPage() {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <span className="section-tag">Features</span>
-            <h2 className="section-title">Everything You Need to <span className="text-gradient">Perfect Your Resume</span></h2>
-            <p className="section-desc">Powered by Google Gemini 2.5 Pro, our platform provides the most comprehensive career intelligence available.</p>
+            <span className="section-tag">9 AI-Powered Tools</span>
+            <h2 className="section-title">More Features Than Jobscan & Teal — <span className="text-gradient">At Half The Price</span></h2>
+            <p className="section-desc">Everything you need for your entire job search — powered by Google Gemini 2.5 Pro, the world's most capable AI.</p>
           </div>
           <div className="features-grid">
             {features.map((f) => (
@@ -117,11 +120,16 @@ export default function LandingPage() {
       <section className="cta-section">
         <div className="container">
           <div className="cta-card glass-card">
-            <h2>Ready to Perfect Your Resume?</h2>
-            <p>Join thousands of professionals who've improved their resumes with AI-powered analysis.</p>
-            <Link to="/signup" className="btn btn-primary btn-lg">
-              Get Started Free →
-            </Link>
+            <h2>Why Pay $49/mo For Just Resume Scanning?</h2>
+            <p>CareerAI gives you 9 AI-powered career tools for $19/mo — including features competitors don't even offer.</p>
+            <div className="hero-actions" style={{ justifyContent: 'center' }}>
+              <Link to="/signup" className="btn btn-primary btn-lg">
+                Start Free — No Credit Card →
+              </Link>
+              <Link to="/pricing" className="btn btn-secondary btn-lg">
+                Compare Plans
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -44,12 +44,18 @@ export default function Navbar() {
               <Link to="/upload" className={`nav-link ${location.pathname === '/upload' ? 'active' : ''}`}>
                 Upload
               </Link>
-              <Link to="/linkedin" className={`nav-link ${location.pathname === '/linkedin' ? 'active' : ''}`}>
-                LinkedIn
-              </Link>
-              <Link to="/photo-studio" className={`nav-link ${location.pathname === '/photo-studio' ? 'active' : ''}`}>
-                Photos
-              </Link>
+              <div className="nav-dropdown">
+                <span className="nav-link nav-dropdown-trigger">Tools ▾</span>
+                <div className="nav-dropdown-menu">
+                  <Link to="/job-match" className="dropdown-item">🎯 Job Match</Link>
+                  <Link to="/cover-letter" className="dropdown-item">📝 Cover Letter</Link>
+                  <Link to="/interview-prep" className="dropdown-item">🎤 Interview Prep</Link>
+                  <Link to="/skills-gap" className="dropdown-item">📊 Skills Gap</Link>
+                  <Link to="/salary-insights" className="dropdown-item">💰 Salary Insights</Link>
+                  <Link to="/linkedin" className="dropdown-item">💼 LinkedIn Optimizer</Link>
+                  <Link to="/photo-studio" className="dropdown-item">📸 Photo Studio</Link>
+                </div>
+              </div>
               <Link to="/history" className={`nav-link ${location.pathname === '/history' ? 'active' : ''}`}>
                 History
               </Link>

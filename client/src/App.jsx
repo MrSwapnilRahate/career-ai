@@ -14,6 +14,10 @@ import ProfilePage from './pages/ProfilePage';
 import PricingPage from './pages/PricingPage';
 import LinkedInPage from './pages/LinkedInPage';
 import PhotoStudioPage from './pages/PhotoStudioPage';
+import CoverLetterPage from './pages/CoverLetterPage';
+import InterviewPrepPage from './pages/InterviewPrepPage';
+import SkillsGapPage from './pages/SkillsGapPage';
+import SalaryInsightsPage from './pages/SalaryInsightsPage';
 
 export default function App() {
   return (
@@ -36,6 +40,10 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/linkedin" element={<ProtectedRoute><LinkedInPage /></ProtectedRoute>} />
           <Route path="/photo-studio" element={<ProtectedRoute><PhotoStudioPage /></ProtectedRoute>} />
+          <Route path="/cover-letter" element={<ProtectedRoute><CoverLetterPage /></ProtectedRoute>} />
+          <Route path="/interview-prep" element={<ProtectedRoute><InterviewPrepPage /></ProtectedRoute>} />
+          <Route path="/skills-gap" element={<ProtectedRoute><SkillsGapPage /></ProtectedRoute>} />
+          <Route path="/salary-insights" element={<ProtectedRoute><SalaryInsightsPage /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

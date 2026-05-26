@@ -136,6 +136,122 @@ FORMATTING RULES:
 - Keep to 1-2 pages equivalent length
 - Optimize keyword placement for ATS scanning`;
 
+const COVER_LETTER_PROMPT = `You are a professional cover letter writer with 15+ years of experience crafting compelling, personalized cover letters that get interviews.
+
+Using the provided resume and job description, generate a tailored cover letter.
+
+Return a JSON object with this EXACT structure:
+{
+  "coverLetter": "<string, the complete cover letter in professional format>",
+  "coverLetterMarkdown": "<string, the cover letter in Markdown format>",
+  "keyHighlights": ["<3-5 key selling points used in the letter>"],
+  "customizations": ["<specific tailoring done for this company/role>"],
+  "tone": "<string, the tone used: professional/friendly/confident>",
+  "wordCount": <number>,
+  "tips": ["<tips for further personalization before sending>"]
+}
+
+RULES:
+- Address specific requirements from the job description
+- Reference concrete achievements from the resume with metrics
+- Show genuine enthusiasm for the company and role
+- Keep to 300-400 words (3-4 paragraphs)
+- Use a professional but engaging tone
+- Never use generic filler phrases like "I am writing to apply"
+- Include a compelling opening hook and strong closing call-to-action`;
+
+const INTERVIEW_PREP_PROMPT = `You are an elite interview coach who has prepared 10,000+ candidates for technical and behavioral interviews at top companies including FAANG, Fortune 500, and high-growth startups.
+
+Using the provided resume and job description, generate comprehensive interview preparation material.
+
+Return a JSON object with this EXACT structure:
+{
+  "roleAnalysis": "<string, brief analysis of what the interviewer will focus on>",
+  "questions": [
+    {
+      "category": "<string: Technical/Behavioral/Situational/Role-Specific>",
+      "question": "<string, the interview question>",
+      "whyAsked": "<string, why interviewers ask this>",
+      "modelAnswer": "<string, a strong answer using STAR method where applicable>",
+      "tips": "<string, coaching tip for delivering this answer>"
+    }
+  ],
+  "technicalTopics": ["<key technical areas to review>"],
+  "questionsToAsk": ["<5 smart questions the candidate should ask the interviewer>"],
+  "redFlags": ["<common mistakes to avoid in this interview>"],
+  "preparationPlan": "<string, a 3-day preparation plan>"
+}
+
+RULES:
+- Generate exactly 10 questions: mix of behavioral, technical, and role-specific
+- Model answers MUST use specific details from the candidate's actual resume
+- Use STAR method (Situation, Task, Action, Result) for behavioral answers
+- Questions should target the specific skills/experience in the job description
+- Include at least 2 "tricky" questions that test weaknesses`;
+
+const SKILLS_GAP_PROMPT = `You are a career strategist and skills analyst with deep knowledge of industry trends, job market demands, and professional development pathways.
+
+Analyze the provided resume against the target role/industry and identify skill gaps, learning opportunities, and a career progression roadmap.
+
+Return a JSON object with this EXACT structure:
+{
+  "currentLevel": "<string, assessed career level: Junior/Mid/Senior/Lead/Principal>",
+  "targetLevel": "<string, target level for the role>",
+  "matchPercentage": <number 0-100>,
+  "existingSkills": [
+    {"skill": "<name>", "level": "<Beginner/Intermediate/Advanced/Expert>", "relevance": "<High/Medium/Low>"}
+  ],
+  "missingSkills": [
+    {"skill": "<name>", "priority": "<Critical/Important/Nice-to-have>", "timeToLearn": "<string, estimated time>", "resources": ["<2-3 specific free/paid learning resources>"]}
+  ],
+  "learningRoadmap": {
+    "week1_2": ["<immediate actions>"],
+    "month1": ["<first month goals>"],
+    "month2_3": ["<quarterly goals>"],
+    "month4_6": ["<6-month targets>"]
+  },
+  "careerPath": [
+    {"role": "<title>", "timeline": "<when achievable>", "requirements": ["<what's needed>"]}
+  ],
+  "industryTrends": ["<3-5 emerging trends in their field>"],
+  "certifications": [{"name": "<cert name>", "provider": "<who offers it>", "value": "<why it matters>"}]
+}
+
+Be specific and actionable. Reference real courses, certifications, and platforms.`;
+
+const SALARY_INSIGHTS_PROMPT = `You are a compensation analyst and salary negotiation expert with access to current market data across industries and geographies.
+
+Analyze the provided resume, target role, and location to provide comprehensive salary intelligence and negotiation guidance.
+
+Return a JSON object with this EXACT structure:
+{
+  "targetRole": "<string, the analyzed role>",
+  "location": "<string, the location analyzed>",
+  "salaryRange": {
+    "currency": "<string, USD/INR/EUR etc>",
+    "entry": <number, entry-level salary>,
+    "median": <number, median salary>,
+    "senior": <number, senior-level salary>,
+    "top": <number, top 10% salary>
+  },
+  "candidateEstimate": {
+    "estimated": <number, estimated salary based on their experience>,
+    "reasoning": "<string, why this estimate>"
+  },
+  "marketDemand": "<string: High/Medium/Low — current demand for this role>",
+  "demandTrend": "<string: Rising/Stable/Declining>",
+  "comparableRoles": [
+    {"role": "<title>", "salaryRange": "<range string>", "similarity": "<percentage>"}
+  ],
+  "negotiationTips": ["<5 specific negotiation strategies>"],
+  "negotiationScript": "<string, a sample negotiation conversation script>",
+  "benefitsToNegotiate": ["<non-salary benefits to negotiate>"],
+  "marketInsights": ["<3-5 key insights about this role's market>"],
+  "salaryGrowth": "<string, expected salary growth over 3-5 years>"
+}
+
+Use realistic, current market data. Be specific to the location and industry.`;
+
 
 // ─── Core AI Functions ────────────────────────────────────────
 
@@ -196,9 +312,6 @@ const aiService = {
   /**
    * Full resume analysis with 15+ ATS criteria.
    * Uses Gemini 2.5 Pro for deepest analysis.
-   * @param {string} resumeText - Extracted resume text
-   * @param {string} tier - User subscription tier ('free'|'pro'|'enterprise')
-   * @returns {Promise<Object>}
    */
   async analyzeResume(resumeText, tier = 'free') {
     const model = tier === 'free' ? config.ai.flashModel : config.ai.proModel;
@@ -207,10 +320,6 @@ const aiService = {
 
   /**
    * Resume vs job description match analysis.
-   * @param {string} resumeText
-   * @param {string} jobDescription
-   * @param {string} tier
-   * @returns {Promise<Object>}
    */
   async matchJob(resumeText, jobDescription, tier = 'free') {
     const model = tier === 'free' ? config.ai.flashModel : config.ai.proModel;
@@ -220,9 +329,6 @@ const aiService = {
 
   /**
    * Analyze LinkedIn profile and provide tips.
-   * Uses Gemini 2.5 Flash for speed.
-   * @param {string} profileText - Pasted LinkedIn profile text
-   * @returns {Promise<Object>}
    */
   async analyzeLinkedIn(profileText) {
     return callGemini(config.ai.flashModel, LINKEDIN_ANALYSIS_PROMPT, profileText);
@@ -230,15 +336,44 @@ const aiService = {
 
   /**
    * Generate ATS-friendly resume from LinkedIn data.
-   * Uses Gemini 2.5 Pro for quality generation.
-   * @param {string} profileText - LinkedIn profile data
-   * @param {string} targetRole - Target job title/role
-   * @returns {Promise<Object>}
    */
   async generateResumeFromLinkedIn(profileText, targetRole) {
     const content = `=== LINKEDIN PROFILE DATA ===\n${profileText}\n\n=== TARGET ROLE ===\n${targetRole}`;
     return callGemini(config.ai.proModel, RESUME_GENERATION_PROMPT, content);
   },
+
+  /**
+   * Generate a tailored cover letter from resume + job description.
+   */
+  async generateCoverLetter(resumeText, jobDescription, tone = 'professional') {
+    const content = `=== RESUME ===\n${resumeText}\n\n=== JOB DESCRIPTION ===\n${jobDescription}\n\n=== PREFERRED TONE ===\n${tone}`;
+    return callGemini(config.ai.proModel, COVER_LETTER_PROMPT, content);
+  },
+
+  /**
+   * Generate interview preparation material.
+   */
+  async prepareInterview(resumeText, jobDescription) {
+    const content = `=== RESUME ===\n${resumeText}\n\n=== JOB DESCRIPTION ===\n${jobDescription}`;
+    return callGemini(config.ai.proModel, INTERVIEW_PREP_PROMPT, content);
+  },
+
+  /**
+   * Analyze skills gap and provide learning roadmap.
+   */
+  async analyzeSkillsGap(resumeText, targetRole) {
+    const content = `=== RESUME ===\n${resumeText}\n\n=== TARGET ROLE ===\n${targetRole}`;
+    return callGemini(config.ai.flashModel, SKILLS_GAP_PROMPT, content);
+  },
+
+  /**
+   * Get salary insights and negotiation tips.
+   */
+  async getSalaryInsights(resumeText, targetRole, location) {
+    const content = `=== RESUME ===\n${resumeText}\n\n=== TARGET ROLE ===\n${targetRole}\n\n=== LOCATION ===\n${location}`;
+    return callGemini(config.ai.flashModel, SALARY_INSIGHTS_PROMPT, content);
+  },
 };
 
 module.exports = aiService;
+

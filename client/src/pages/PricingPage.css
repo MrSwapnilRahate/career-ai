@@ -131,6 +131,30 @@
   font-size: 0.9rem;
 }
 
+.plan-tagline {
+  font-size: 0.8rem;
+  color: var(--accent-secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.pricing-compare {
+  max-width: 700px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.compare-text {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 /* ─── Features ─────────────────────────────────────────── */
 
 .plan-features {

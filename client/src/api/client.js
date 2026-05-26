@@ -172,5 +172,20 @@ export const imageAPI = {
     request('/images/cover', { method: 'POST', body: options }),
 };
 
-export default request;
+// ─── Career Tools API ──────────────────────────────────────
 
+export const careerAPI = {
+  generateCoverLetter: (resumeText, jobDescription, tone) =>
+    request('/career/cover-letter', { method: 'POST', body: { resumeText, jobDescription, tone } }),
+
+  prepareInterview: (resumeText, jobDescription) =>
+    request('/career/interview-prep', { method: 'POST', body: { resumeText, jobDescription } }),
+
+  analyzeSkillsGap: (resumeText, targetRole) =>
+    request('/career/skills-gap', { method: 'POST', body: { resumeText, targetRole } }),
+
+  getSalaryInsights: (resumeText, targetRole, location) =>
+    request('/career/salary-insights', { method: 'POST', body: { resumeText, targetRole, location } }),
+};
+
+export default request;

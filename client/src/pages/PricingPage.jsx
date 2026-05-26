@@ -35,52 +35,67 @@ export default function PricingPage() {
   const plans = [
     {
       id: 'free',
-      name: 'Free',
+      name: 'Starter',
       price: '$0',
       period: 'forever',
       badge: '',
+      tagline: 'Perfect for trying out CareerAI',
       features: [
         { text: '3 Resume Analyses / month', included: true },
         { text: '1 Job Match / month', included: true },
         { text: 'Basic ATS Score', included: true },
-        { text: 'LinkedIn Profile Tips', included: false },
+        { text: 'Resume Format Tips', included: true },
+        { text: 'Cover Letter Generator', included: false },
+        { text: 'AI Interview Prep', included: false },
+        { text: 'Skills Gap Analyzer', included: false },
+        { text: 'Salary Insights', included: false },
+        { text: 'LinkedIn Optimizer', included: false },
         { text: 'AI Resume Generator', included: false },
-        { text: 'Professional Photos', included: false },
-        { text: 'Cover Photo Generator', included: false },
-        { text: 'Priority Processing', included: false },
+        { text: 'Professional AI Photos', included: false },
+        { text: 'Priority Processing (Gemini 2.5 Pro)', included: false },
       ],
     },
     {
       id: 'pro',
       name: 'Pro',
-      price: '$9.99',
+      price: '$19',
       period: '/month',
       badge: 'MOST POPULAR',
+      tagline: 'For active job seekers — 60% cheaper than Jobscan',
       features: [
-        { text: '30 Resume Analyses / month', included: true },
-        { text: '15 Job Matches / month', included: true },
+        { text: '50 Resume Analyses / month', included: true },
+        { text: '25 Job Matches / month', included: true },
         { text: 'Detailed ATS Score + Section Breakdown', included: true },
-        { text: 'LinkedIn Profile Tips', included: true },
-        { text: '5 AI Resume Generations / month', included: true },
-        { text: '3 Professional Photos / month', included: true },
-        { text: '3 Cover Photos / month', included: true },
+        { text: '10 Cover Letters / month', included: true },
+        { text: '5 AI Interview Preps / month', included: true },
+        { text: '3 Skills Gap Analyses / month', included: true },
+        { text: '3 Salary Insights / month', included: true },
+        { text: 'LinkedIn Profile Optimizer', included: true },
+        { text: '10 AI Resume Generations / month', included: true },
+        { text: '5 Professional AI Photos / month', included: true },
+        { text: 'Gemini 2.5 Pro AI Model', included: true },
         { text: 'Priority Processing', included: true },
       ],
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: '$29.99',
+      id: 'career_pro',
+      name: 'Career Pro',
+      price: '$39',
       period: '/month',
       badge: 'BEST VALUE',
+      tagline: 'All-in-one career toolkit — unlimited everything',
       features: [
         { text: 'Unlimited Resume Analyses', included: true },
         { text: 'Unlimited Job Matches', included: true },
-        { text: 'Detailed ATS + Industry Benchmarks', included: true },
-        { text: 'LinkedIn Profile Tips', included: true },
+        { text: 'Advanced ATS + Industry Benchmarks', included: true },
+        { text: 'Unlimited Cover Letters', included: true },
+        { text: 'Unlimited AI Interview Preps', included: true },
+        { text: 'Unlimited Skills Gap Analyses', included: true },
+        { text: 'Unlimited Salary Insights', included: true },
+        { text: 'LinkedIn Profile Optimizer', included: true },
         { text: 'Unlimited AI Resume Generations', included: true },
-        { text: '20 Professional Photos / month', included: true },
-        { text: '20 Cover Photos / month', included: true },
+        { text: '30 Professional AI Photos / month', included: true },
+        { text: 'Gemini 2.5 Pro AI Model', included: true },
         { text: 'Priority Processing', included: true },
       ],
     },
@@ -91,10 +106,14 @@ export default function PricingPage() {
       <div className="pricing-header">
         <span className="pricing-badge">💎 PRICING</span>
         <h1>Choose Your <span className="gradient-text">Career Plan</span></h1>
-        <p>Unlock premium AI features to accelerate your career growth</p>
+        <p>More features than Jobscan, Resume Worded & Teal — at a fraction of the price</p>
       </div>
 
       {error && <div className="pricing-error">{error}</div>}
+
+      <div className="pricing-compare">
+        <p className="compare-text">💡 <strong>Why CareerAI?</strong> Competitors charge $49/mo for just resume scanning. We give you ATS analysis, LinkedIn optimization, AI photos, and resume generation — starting at <strong>$19/mo</strong>.</p>
+      </div>
 
       <div className="pricing-grid">
         {plans.map((plan) => (
@@ -110,6 +129,7 @@ export default function PricingPage() {
                 <span className="price">{plan.price}</span>
                 <span className="period">{plan.period}</span>
               </div>
+              {plan.tagline && <p className="plan-tagline">{plan.tagline}</p>}
             </div>
 
             <ul className="plan-features">
@@ -134,7 +154,7 @@ export default function PricingPage() {
                   onClick={() => handleCheckout(plan.id)}
                   disabled={loading === plan.id}
                 >
-                  {loading === plan.id ? 'Processing...' : `Upgrade to ${plan.name}`}
+                  {loading === plan.id ? 'Processing...' : `Get ${plan.name}`}
                 </button>
               )}
             </div>
